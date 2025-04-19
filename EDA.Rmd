@@ -1,0 +1,233 @@
+---
+title: "EDA"
+author: "Alexia Wells"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc-depth: 3
+    toc-title: "Contents"
+editor_options: 
+  chunk_output_type: console
+execute:
+  warning: false
+  message: false
+---
+
+# Business Statement
+Swire Coca-Cola is a leading tech company that puts clients at the center of their work. As a bottler and distributor throughout 13 Western states, operational efficiency is a necessity to remain successful and create long-term relationships with clientele. Swire Coca-Cola must avoid prematurely moving high-growth potential customers to white truck delivery (Alternate Route to Market) as this could severely impact revenue growth. The purpose of this project is to reasonably maximize sales by predicting which clients have the potential to reach the high-performing SCCU optimal threshold of 400 gallons annually.
+
+This will be a predictive analytics project that includes a supervised regression algorithm that determines the number of expected gallons annually. The model will take a balanced approach to inform client growth by taking into account historical sales data and other customer characteristics. A few of
+these customer demographics include the client's zip code, full address information, if they are a local market partner, etc. The target variable is the annual volume range.
+
+The purpose of this EDA notebook is to take a look at the data and get an initial understanding. That means variable distributions and relationships will be explored. One of my main goals is to identify issues that may come up in the modeling process and consequently making any necessary fixes. The questions that will be explored in this notebook can be found in the table of contents. 
+
+
+# Exploration Tasks 
+
+## What Does Each Data File Look Like?
+In total, the Swire Coca-Cola Team provided four data-files; Three CSV's and one was Excel file. Each file will be looked at individually. 
+
+```{r, message=FALSE, warning = FALSE}
+# Load the libraries
+library(vroom)
+library(tidyverse)
+library(tidymodels)
+library(DataExplorer)
+library(readxl)
+library(caret)
+library(kableExtra)
+```
+
+```{r, message=FALSE, warning = FALSE}
+# Read in the data
+address_zip <- vroom("customer_address_and_zip_mapping.csv") 
+profile <- vroom("customer_profile.csv")
+delivery_cost <- read_xlsx("delivery_cost_data.xlsx")
+transactional <- vroom("transactional_data.csv")
+```
+
+### customer_address_and_zip_mapping.csv
+This file has just two variables. On first glance, it does not seem entirely helpful considering the zip code and full address are completely randomized. 
+It is important to note, the zip codes are real but they are blinded for data privacy purposes. With that said, it is still essential to investigate if there are any patterns. 
+```{r, fig.height=7, fig.width=7}
+address_zip |> 
+  head() |> 
+  kbl() |>
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+### customer_profile.csv
+This file focuses on detailed information about customers, onboarding, and their purchasing behavior. There are eleven columns and 30,478 rows. 
+```{r, fig.height=7, fig.width=7}
+profile |> 
+  head()|>
+  kbl() |>
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+### delivery_cost_data.xlsx
+This dataset is slightly simpler considering there are only 160 rows and 5 columns relating to delivery costs. It will be helpful for calculating the total delivery costs. 
+```{r, fig.height=7, fig.width=7}
+delivery_cost |> 
+  head()|>
+  kbl() |>
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+### transactional_data.csv
+The dataset keeps track of transactional information, specifically order quantities and delivery metrics. There are 1,045,540 rows and 11 columns. For context, fountains drinks are measured in gallons and bottles/cans are measured in cases. 
+
+```{r, fig.height=7, fig.width=7}
+transactional |> 
+  head()|>
+  kbl() |>
+  kable_classic(full_width = F, html_font = "Cambria")
+```
+
+## How Can the Datasets be Combined?
+
+### address_zip + profile
+My first initial thought was to combine these two datasets together by zip. I ended up doing a left join. This would a good move that prevented data loss. 
+```{r, message=FALSE}
+# Checking for duplicated info in address_zip, there is 0
+sum(duplicated(address_zip))
+
+# Our current dimensions
+dim(address_zip)
+dim(profile)
+
+# Rename zip column of address_zip
+address_zip <- address_zip |> 
+  rename('ZIP_CODE' = zip)
+
+# Conduct the join
+customer_demo <- left_join(profile, address_zip, by = "ZIP_CODE")
+```
+
+### Updated customer_demo + Transactional 
+From there, I joined the dataset created above to the transactional data by the customer number. 
+```{r}
+# Join
+joined_data <- left_join(transactional, customer_demo, by = "CUSTOMER_NUMBER")
+```
+
+## Cleaning the Data
+
+### How Does the Initial Data Look? 
+Luckily, there is no duplicated data. I did need to change the types of certain columns. 
+```{r}
+# Check for duplicated data
+anyDuplicated(joined_data)
+
+# Change categorical variables to factors and transaction_date to date variable 
+full_data <- joined_data |> 
+  mutate(across(c(CUSTOMER_NUMBER, ORDER_TYPE, PRIMARY_GROUP_NUMBER, 
+                  FREQUENT_ORDER_TYPE, COLD_DRINK_CHANNEL, 
+                  TRADE_CHANNEL, SUB_TRADE_CHANNEL, LOCAL_MARKET_PARTNER, 
+                  CO2_CUSTOMER, ZIP_CODE), as.factor)) |> 
+  mutate(across(c(TRANSACTION_DATE, FIRST_DELIVERY_DATE, ON_BOARDING_DATE), 
+                ~ as.Date(., format = "%m/%d/%Y")))
+
+# Check that the changes look good 
+str(full_data)
+
+# Write out file
+# vroom::vroom_write(x=full_data, file="fulldata.csv", delim=",")
+```
+
+### Are there columns with near zero variance? 
+No, all the columns look great. 
+```{r}
+nearZeroVar(full_data, saveMetrics = TRUE)
+```
+
+### What is the scope of the missing variable?
+
+We are only missing 2.1% of observations. Because of this it would likely be best just to remove those instances. The leaders of Coca Cola shared that if there is missing data it likely doesn't have anything to do with informative missingness. 
+
+Looks like the missing data is all from one column, PRIMARY_GROUP_NUMBER. 
+```{r, fig.height=7, fig.width=7}
+full_data |> 
+  plot_intro()
+
+full_data |> 
+  plot_missing() 
+```
+
+
+### Are there string errors in the data?
+No, the string/factor data looks perfect. 
+```{r, eval=FALSE}
+unique(full_data$ORDER_TYPE)
+unique(full_data$FREQUENT_ORDER_TYPE)
+unique(full_data$COLD_DRINK_CHANNEL)
+unique(full_data$TRADE_CHANNEL)
+unique(full_data$SUB_TRADE_CHANNEL)
+```
+
+
+## Visualizations
+Data summaries based on your questions: plots and summary tables.  If, as you are doing EDA, more questions occur to you, then go back and put them into your question list. Make sure that you include plot titles and axis labels.
+
+
+### Bar Plots 
+```{r, fig.height=7, fig.width=7}
+full_data[0:10] |> 
+  plot_bar()
+
+full_data[11:13] |> 
+  plot_bar()
+
+full_data[14:17] |> 
+  plot_bar()
+
+full_data[18] |> 
+  plot_bar()
+
+full_data[19:22] |> 
+  plot_bar()
+```
+
+
+### Principal Component Analysis
+```{r, warning=FALSE, fig.height=8, fig.width=8}
+# Capture the PCA plots
+pca_plots <- plot_prcomp(full_data)
+
+# Print only the first PCA plot
+print(pca_plots[[1]])
+```
+
+
+### Correlation Analysis
+Important to note high correlation between the ordered cases, loaded cases, delivered cases, ordered gallons, and delivered gallons. 
+```{r,warning=FALSE, fig.height=8, fig.width=8}
+full_data |> 
+  plot_correlation()
+```
+
+## Feature Engineering
+### Should Volume Range be Set Up as a Binning Variable?
+I believe it should be set as a binning variable
+
+```{r}
+# Checking max amount of ordered/loaded/delivered gallons/cases. 
+# summary(full_data)
+
+# Will make sure it is set up as a factor
+delivery_data <- delivery_cost |> 
+  mutate(`Vol Range` = as.factor(`Vol Range`)) 
+
+# Drop Cost Type
+delivery_data <- delivery_data |> 
+  dplyr::select(-`Cost Type`)
+```
+
+
+# Results
+Initially, there are is no duplication or near zero variance. Only 2.1% of observations are missing which comes from the column Primary Group Number. The correlation analysis is concerning between the ordered cases, loaded cases, delivered cases, ordered gallons, and delivered gallons. There is likely multicollinearity present since these columns seem fairly similar. This will need to be addressed in the modeling process. Ultimately, the main result from this EDA process is the merged dataset!
+
+## Future Plans
+The next step in the process is to do modeling. The modeling can be done through black-box or traditional methods. I believe linear regression would be a great model to start off with, possibly giving a good baseline for model performance. Cluster analysis would be ideal black-box method to identify characteristics that distinguish customers with annual sales exceeding the determined volume threshold and those below. My team and I will need to determine appropriate evaluation metrics as well.
