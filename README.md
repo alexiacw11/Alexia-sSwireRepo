@@ -1,8 +1,8 @@
 # AlexiaSwireRepo
-Code for University of Utah's MSBA Capstone Competition.
+Code for University of Utah's MSBA Capstone Competition. The finalized group repository, which includes the slides presented to Swire Coca-Cola, can be found [here](https://github.com/leahekblad/MSBA-Capstone-Group-1).
 
 ## Business Problem
-Swire Coca-Cola is a leading tech company that puts clients at the center of their work. As a bottler and distributor throughout 13 Western states, operational efficiency is a necessity to remain successful and create long-term relationships with clientele. Swire Coca-Cola must avoid prematurely moving high-growth potential customers to white truck delivery (Alternate Route to Market) as this could severely impact revenue growth. The purpose of this project is to reasonably maximize sales by predicting which clients have the potential to reach the high-performing SCCU optimal threshold of *** gallons annually.
+Swire Coca-Cola is a leading tech company that puts clients at the center of their work. As a bottler and distributor throughout 13 Western states, operational efficiency is necessary to remain successful and create long-term relationships with clientele. Swire Coca-Cola must avoid prematurely moving high-growth potential customers to white truck delivery (Alternate Route to Market) as this could severely impact revenue growth. The purpose of this project is to reasonably maximize sales by predicting which clients have the potential to reach the high-performing SCCU optimal threshold of *** gallons annually.
 
 ## Project Objectives
 <ul>
