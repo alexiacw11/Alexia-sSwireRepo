@@ -26,22 +26,14 @@ The benefits of predicting high-growth profile accounts are as follows.
   <li> 2023 linear Regression and interpretation
   <li> 2024 linear regression and interpretation 
 <li> Predictive analytics and appendix slides of the presentation 
-<li> Answered Swire Coca-Cola's modeling questions post presentation </ul>
+<li> Answered Swire Coca-Cola's modeling questions post-presentation </ul>
 
 ## Difficulties Encountered Along the Way
-1. Data Quality: There were data columns that were redacted to keep the 
-2.
-3.
-4.
-5. There are improvements that could be made by Swire Coca-Cola to further support the analysis of fulfillment rates, delivery efficiency, and customer behavior. 
-
-6. : Multicollinearity can inflate the variance of coefficient estimates, making the model sensitive to small changes in the data and potentially reducing interpretability.
-7.  Deciding Solution Approach: Potential Outliers and Noise: Some numerical features contained extreme values that were potentially outliers or data entry errors. These values can distort model training, especially in distance-based or sensitive algorithms, necessitating careful inspection and possible transformation or filtering.
-8.  Model Underfitting: Potential Outliers and Noise: Some numerical features contained extreme values that were potentially outliers or data entry errors. These values can distort model training, especially in distance-based or sensitive algorithms, necessitating careful inspection and possible transformation or filtering.
-9.  Time Constraints:
-
-
-
+1. Data Quality: Some information from data columns was redacted for privacy purposes, for instance, zip codes. This made it slightly more difficult to interpret our results and how it pertained to the company's mission. Additionally, some improvements could be made by Swire Coca-Cola to support further the analysis of fulfillment rates, delivery efficiency, and customer behavior. 
+2. Multicollinearity: This can inflate the variance of coefficient estimates, making the model sensitive to small changes in the data and potentially reducing interpretability. I had to do my best to remove this from our model. 
+3. Potential Outliers and Noise: Some numerical features contained extreme values that were potentially outliers or data entry errors. These values can distort model training, especially in distance-based or sensitive algorithms, necessitating careful inspection and possible transformation or filtering.
+4. Deciding Solution Approach: There were many ways to address the questions posed by Swire Coca-Cola, but as a group we wanted to be consistent with our approach - either go all in on BlackBox methods or commit to traditional models. Ultimately, we decided on the latter.
+5. Time Constraints: While I had plenty of ideas throughout the modeling process, I could not try all of them because of time constraints. This is an "unfortunate" reality that mimics what I will experience in the real world. 
 
 ## Solution
 <ul>
